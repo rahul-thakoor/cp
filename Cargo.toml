@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["rahul-thakoor <rahul.thakoor@gmail.com>"]
 
 [dependencies]
+cargo-name = "1.0.0"
 serde_derive = "1.0"
 toml = "0.4"
 serde = "1.0"

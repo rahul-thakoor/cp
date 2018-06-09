@@ -1,10 +1,7 @@
 use std::fs::File;
 use std::io::Read;
 use toml;
-use reqwest;
-use serde_json::*;
-
-static  CARGO_API_ENDPOINT: &str = "https://crates.io/api/v1/crates/";
+use cargo_name::{Availability};
 
 #[derive(Debug,Deserialize)]
 struct CargoManifest {
@@ -30,6 +27,10 @@ impl CargoPackage{
 }
 
 
+
+
+/// Read Cargo.toml file from provided path
+/// Path should be crate root
 fn read_cargo_toml(path: &str) -> CargoManifest{
     let manifest_path = format!("{}/Cargo.toml", path);
     let mut cargo_file = File::open(manifest_path).expect("Cannot open manifest file");
@@ -44,17 +45,13 @@ pub fn get_package_info(path: &str) -> CargoPackage {
 
 }
 
+/// Check if the name provided on the Cargo.toml file is available in crates.io
 pub fn validate_name(name:String){
-    let endpoint = format!("{}{}", CARGO_API_ENDPOINT, name);
-    let mut res = reqwest::get(&endpoint).unwrap();
-    let mut body = String::new();
-    res.read_to_string(&mut body).unwrap();
+    match cargo_name::get(&name).unwrap() {
+        Availability::Available => println!("cargo name valid"),
+        Availability::Unavailable => println!("Unavailable."),
+        Availability::Unknown => println!("Unknown status code returned."),
 
-    // Parse the string of data into serde_json::Value.
-    let v: Value = serde_json::from_str(&body).expect("Cannot parse reqwest data");
+    };
 
-
-
-    println!("Body:\n{}", body);
-    println!("Parsed data: {}", v["errors"] );
 }
