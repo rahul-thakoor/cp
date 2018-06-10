@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::Read;
 use toml;
 use cargo_name::{Availability};
+use license_exprs::{validate_license_expr};
 
 #[derive(Debug,Deserialize)]
 struct CargoManifest {
@@ -24,6 +25,33 @@ impl CargoPackage{
         self.name
     }
 
+    pub fn get_license(self) -> Option<String>{
+        self.license
+    }
+
+    /// Check if the name provided on the Cargo.toml file is available in crates.io
+    // TODO: better error handling
+    pub fn validate_name(&self){
+        match cargo_name::get(&self.name).unwrap() {
+            Availability::Available => println!("cargo name valid"),
+            Availability::Unavailable => println!("Unavailable."),
+            Availability::Unknown => println!("Unknown status code returned."),
+
+        };
+
+    }
+    /// Check the license field in Cargo.toml
+    pub fn validate_license(&self){
+        match &self.license {
+            Some(l) => verify_license(&l),
+            None => println!("No license"),
+
+        }
+
+
+    }
+
+
 }
 
 
@@ -45,13 +73,10 @@ pub fn get_package_info(path: &str) -> CargoPackage {
 
 }
 
-/// Check if the name provided on the Cargo.toml file is available in crates.io
-pub fn validate_name(name:String){
-    match cargo_name::get(&name).unwrap() {
-        Availability::Available => println!("cargo name valid"),
-        Availability::Unavailable => println!("Unavailable."),
-        Availability::Unknown => println!("Unknown status code returned."),
-
-    };
-
+/// Validate the given license expression
+fn verify_license(l:&str){
+    match validate_license_expr(l){
+        Ok(_) => println!("License {} ok", l),
+        Err(e) => println!("{}",e)
+    }
 }
